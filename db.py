@@ -5,7 +5,7 @@ from typing import Any
 
 class DbConnector(Connection):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__('db.sqlite3', *args, **kwargs)
         c = self.cursor()
         c.execute('PRAGMA foreign_keys = ON;').close()
 

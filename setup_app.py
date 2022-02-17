@@ -17,7 +17,7 @@ def setup_dotenv():
 def setup_db():
     load_dotenv()
 
-    with DbConnector('db.sqlite3') as conn:
+    with DbConnector() as conn:
         c = conn.cursor()
         create_user(c, 'admin', environ['ADMIN_PASSWORD'], admin=True)
 
