@@ -30,20 +30,20 @@ def register():
     password = body.get('password')
 
     if username is None or password is None:
-        return error('body must contain username and password'), 400
+        return error('Body must contain username and password'), 400
 
     if not username_pattern.match(username):
-        return error('username must consist of 4-30 letters, digits or underscores'), 400
+        return error('Username must consist of 4-30 letters, digits or underscores'), 400
 
     if not password_pattern.match(password):
-        return error('password must consist of 12-64 characters and contain at least one uppercase letter, lowercase letter and a digit'), 400
+        return error('Password must consist of 12-64 characters and contain at least one uppercase letter, lowercase letter and a digit'), 400
 
     with DbConnector() as conn:
         c = conn.cursor()
         try:
             create_user(c, username, password)
         except IntegrityError:
-            return error('user already exists'), 402
+            return error('User already exists'), 402
 
     resp = make_response(jsonify({'msg': 'ok'}))
     resp.set_cookie('token', create_token(username, False))
@@ -58,7 +58,7 @@ def login():
     password = body.get('password')
 
     if username is None or password is None:
-        return error('body must contain username and password'), 400
+        return error('Body must contain username and password'), 400
 
     with DbConnector() as conn:
         c = conn.cursor()
@@ -68,13 +68,13 @@ def login():
         ).fetchone() or (None, None)
 
     if hashed is None:
-        return error('user doesn\'t exist'), 400
+        return error('User doesn\'t exist'), 400
 
     ph = PasswordHasher()
     try:
         ph.verify(hashed, password)
     except VerifyMismatchError:
-        return error('invalid password'), 400
+        return error('Invalid password'), 400
 
     resp = make_response(jsonify({'msg': 'ok'}))
     resp.set_cookie('token', create_token(username, bool(admin)))

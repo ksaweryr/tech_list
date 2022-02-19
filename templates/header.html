@@ -1,0 +1,41 @@
+{% macro navLink(path, name) %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('frontend.{}'.format(path)) }}">{{ name }}</a>
+    </li>
+{%- endmacro %}
+
+{% macro dropdownItem(path, name) %}
+    <li><a class="dropdown-item" href="{{ url_for('frontend.{}'.format(path)) }}">{{ name }}</a></li>
+{%- endmacro %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <a href="#" class="navbar-brand">Tech list</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
+                {% if g.user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ g.user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><hr class="dropdown-divider"></li>
+                            {{ dropdownItem('auth.logout', 'Log out') }}
+                        </ul>
+                    </li>
+                {% else %}
+                    {{ navLink('auth.login', 'Log in') }}
+                    {{ navLink('auth.register', 'Register') }}
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

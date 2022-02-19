@@ -1,4 +1,5 @@
 from .api import bp as api
+from .frontend import bp as frontend
 from .utils import User
 from dotenv import load_dotenv
 from flask import Flask, g, request
@@ -11,6 +12,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(frontend, url_prefix='/')
 
 
 @app.before_request

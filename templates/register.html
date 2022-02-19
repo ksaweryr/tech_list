@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block styles %}
+{{ style('auth.css') }}
+{% endblock %}
+
+{% block scripts %}
+{{ script('register.js') }}
+{% endblock %}
+
+{% block content %}
+<div class="auth-form">
+    <form novalidate>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control auto-validate" name="username" pattern="^[\w\d_]{4,30}$" required />
+            <div class="form-text">
+                Username can consist of letter, digits and underscores only and must be between 4 and 30 characters long.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control auto-validate" name="password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,64}$" required />
+            <div class="form-text">
+                Password must consist of 12 to 64 characters and must include at least one uppercase and lowercase letter and one digit.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Repeat password</label>
+            <input type="password" class="form-control" name="repeated_password" required />
+            <div class="form-text">
+                Repeated password must be identical to the password.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mb-3">Register</button>
+        <div class="alert alert-danger" id="api-error" hidden></div>
+    </form>
+</div>
+{% endblock %}
