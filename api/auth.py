@@ -1,4 +1,5 @@
 from ..db import create_user, DbConnector
+from .middleware import allowed_content_types
 from .utils import error
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -14,6 +15,11 @@ username_pattern = re.compile(r'^[\w\d_]{4,30}$')
 password_pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,64}$')
 
 bp = Blueprint('auth', __name__)
+
+
+@bp.before_request
+@allowed_content_types(['application/json'])
+def _(): pass
 
 
 def create_token(username: str, admin: bool) -> str:

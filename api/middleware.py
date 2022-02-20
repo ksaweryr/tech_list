@@ -1,12 +1,27 @@
 from .utils import error
 from flask import g, request
 from functools import wraps
-from typing import Callable
+from typing import Callable, Iterable
 
 
-def reject_non_json():
-    if not request.is_json:
-        return error('Only json format is supported'), 400
+class allowed_content_types:
+    def __init__(self, accepted: Iterable[str]):
+        self.accepted = accepted
+
+    def __call__(self, f: Callable) -> Callable:
+        @wraps(f)
+        def inner(*args, **kwargs):
+            # startswith is used instead of __eq__ since multipart
+            # content types include bound info which can be virtually any value
+            if any(map(request.content_type.startswith, self.accepted)):
+                return f(*args, **kwargs)
+
+            return error(
+                f'Unsupported content type {request.content_type}. '
+                f'Accepted content types are: {", ".join(self.accepted)}'
+            ), 400
+
+        return inner
 
 
 def login_required(f: Callable) -> Callable:
