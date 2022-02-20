@@ -10,6 +10,7 @@ CREATE TABLE technology(
   uid INTEGER NOT NULL,
   name TEXT UNIQUE,
   description TEXT NOT NULL,
+  logo_filename TEXT NOT NULL UNIQUE,
   link TEXT NOT NULL,
   creation_date TEXT NOT NULL DEFAULT '',
   update_date TEXT DEFAULT NULL,
