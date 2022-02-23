@@ -18,3 +18,14 @@ def create_user(c: Cursor, username: str, password: str,
         'INSERT INTO app_user(username, password, admin) VALUES(?, ?, ?);',
         (username, hashed, admin)
     )
+
+
+def get_technology_creator(c: Cursor, tid: int) -> str | None:
+    (creator,) = c.execute('''
+        SELECT u.username
+        FROM technology t
+        NATURAL JOIN app_user u
+        WHERE t.tid = ?;''',
+        (tid,)).fetchone() or (None,)
+
+    return creator

@@ -28,3 +28,4 @@ htmlcov/
 *,cover
 
 db.sqlite3
+uploads/
