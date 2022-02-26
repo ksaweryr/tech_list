@@ -174,6 +174,11 @@ def update(tid):
 
     body = {k: v for k, v in body.items() if k in UPDATABLES}
 
+    for field, mlen in zip(('name', 'description'), (20, 200)):
+        if body.get(field) is not None and len(body[field]) > mlen:
+            return (error(f'{field} musn\'t be longer than {mlen} characters'),
+                    400)
+
     if logo is not None:
         success, msg = save_logo(logo)
         if not success:
