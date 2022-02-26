@@ -13,7 +13,10 @@ class allowed_content_types:
         def inner(*args, **kwargs):
             # startswith is used instead of __eq__ since multipart
             # content types include bound info which can be virtually any value
-            if any(map(request.content_type.startswith, self.accepted)):
+            if (
+                request.content_type is not None
+                and any(map(request.content_type.startswith, self.accepted))
+            ):
                 return f(*args, **kwargs)
 
             return error(

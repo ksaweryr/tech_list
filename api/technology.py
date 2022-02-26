@@ -7,12 +7,14 @@ from json.decoder import JSONDecodeError
 from operator import itemgetter
 from pathlib import Path
 from PIL import Image
+from sqlite3 import IntegrityError
 from typing import Tuple
 from uuid import uuid4
 from werkzeug.datastructures import FileStorage
 
 import imghdr
 import json
+import os
 
 bp = Blueprint('technology', __name__)
 
@@ -70,13 +72,22 @@ def create():
     else:
         filename = msg
 
-    with DbConnector() as conn:
-        c = conn.cursor()
-        (tid,) = c.execute('''
-            INSERT INTO technology(uid, name, description, logo_filename, link)
-            VALUES((SELECT uid FROM app_user WHERE username = ?), ?, ?, ?, ?)
-            RETURNING tid;
-        ''', (g.user.username, name, description, filename, link)).fetchone()
+    try:
+        with DbConnector() as conn:
+            c = conn.cursor()
+            (tid,) = c.execute('''
+                INSERT INTO technology(
+                    uid, name, description, logo_filename, link
+                )
+                VALUES(
+                    (SELECT uid FROM app_user WHERE username = ?), ?, ?, ?, ?
+                )
+                RETURNING tid;
+            ''', (g.user.username, name, description, filename, link)
+            ).fetchone()
+    except IntegrityError:
+        os.remove(Path('uploads') / filename)
+        return error('Technology with this name already exists')
 
     return jsonify({'tid': tid})
 
@@ -86,7 +97,7 @@ def get_list():
     ORDERINGS = ('creation_date', 'likes')
     COLUMNS = (
         't.tid', 't.logo_filename', 't.name', 't.description',
-        't.link', 't.creation_date', 't.likes', 'u.username'
+        't.link', 't.creation_date', 't.update_date', 't.likes', 'u.username'
     )
     offset = parse_or_default(request.args.get('off'), 0)
     count = parse_or_default(request.args.get('size'), 10)
@@ -102,8 +113,8 @@ def get_list():
         rows = c.execute(f'''
             SELECT {", ".join(COLUMNS)}
             FROM technology t NATURAL JOIN app_user u
-            ORDER BY ? LIMIT ? OFFSET ?;''',
-            (ordering, count, offset)).fetchall()
+            ORDER BY ? LIMIT ? OFFSET ?;
+        ''', (ordering, count, offset)).fetchall()
 
         more = c.execute(
             'SELECT COUNT(*) FROM technology'
@@ -127,9 +138,10 @@ def get_single(tid):
     with DbConnector() as conn:
         c = conn.cursor()
         row = c.execute(f'''
-        SELECT {", ".join(COLUMNS)}
-        FROM technology t NATURAL JOIN app_user u
-        WHERE tid = ?;''', (tid,)).fetchone()
+            SELECT {", ".join(COLUMNS)}
+            FROM technology t NATURAL JOIN app_user u
+            WHERE tid = ?;
+        ''', (tid,)).fetchone()
 
     if row is None:
         return error('Technology not found'), 404
@@ -143,8 +155,10 @@ def get_single(tid):
 def update(tid):
     UPDATABLES = ('name', 'description', 'link')
     with DbConnector() as conn:
-        if (not g.user.admin
-            and get_technology_creator(conn.cursor(), tid) != g.user.username):
+        if (
+            not g.user.admin
+            and get_technology_creator(conn.cursor(), tid) != g.user.username
+        ):
             return (error('You don\' have permission to modify this record'),
                     403)
 
@@ -170,11 +184,24 @@ def update(tid):
     items = body.items()
 
     with DbConnector() as conn:
-        c = conn.cursor()
-        c.execute(f'''
-        UPDATE technology
-        SET {", ".join(map(lambda x: f"{x[0]} = ?", items))}
-        WHERE tid = ?;''', [*map(itemgetter(1), items), tid])
+        try:
+            c = conn.cursor()
+            (old_filename,) = c.execute('''
+                SELECT logo_filename
+                FROM technology
+                WHERE tid = ?;
+            ''', (tid,)).fetchone()
+            c.execute(f'''
+                UPDATE technology
+                SET {", ".join(map(lambda x: f"{x[0]} = ?", items))}
+                WHERE tid = ?;
+            ''', [*map(itemgetter(1), items), tid])
+
+            if body.get('logo_filename') is not None:
+                os.remove(Path('uploads') / old_filename)
+        except IntegrityError:
+            os.remove(Path('uploads') / body['logo_filename'])
+            return error('Technology with this name already exists')
 
     return jsonify({'msg': 'ok'})
 
@@ -184,11 +211,19 @@ def update(tid):
 def delete(tid):
     with DbConnector() as conn:
         c = conn.cursor()
-        if (not g.user.admin
-            and get_technology_creator(c, tid) != g.user.username):
+        if (
+            not g.user.admin
+            and get_technology_creator(c, tid) != g.user.username
+        ):
             return (error('You don\' have permission to modify this record'),
                     403)
 
-        c.execute('''DELETE FROM technology WHERE tid = ?;''', (tid,))
+        (filename,) = c.execute('''
+            DELETE FROM technology
+            WHERE tid = ?
+            RETURNING logo_filename;
+        ''', (tid,)).fetchone()
+
+        os.remove(Path('uploads') / filename)
 
     return jsonify({'msg': 'ok'})
