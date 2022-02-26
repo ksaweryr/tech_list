@@ -11,7 +11,7 @@ from time import time
 import jwt
 import re
 
-username_pattern = re.compile(r'^[\w\d_]{4,30}$')
+username_pattern = re.compile(r'^[\w\d_]{4,20}$')
 password_pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,64}$')
 
 bp = Blueprint('auth', __name__)
@@ -39,7 +39,7 @@ def register():
         return error('Body must contain username and password'), 400
 
     if not username_pattern.match(username):
-        return error('Username must consist of 4-30 letters, digits or underscores'), 400
+        return error('Username must consist of 4-20 letters, digits or underscores'), 400
 
     if not password_pattern.match(password):
         return error('Password must consist of 12-64 characters and contain at least one uppercase letter, lowercase letter and a digit'), 400
