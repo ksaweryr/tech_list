@@ -39,7 +39,7 @@ END;
 
 -- Set the update date after a post is updated
 CREATE TRIGGER set_update_date
-  AFTER UPDATE ON technology
+  AFTER UPDATE OF name, description, logo_filename, link ON technology
 BEGIN
   UPDATE technology SET update_date = datetime() WHERE tid = NEW.tid;
 END;
