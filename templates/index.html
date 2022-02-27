@@ -1,3 +1,51 @@
 {% extends "base.html" %}
 
 {% block title %}Home{% endblock %}
+
+{% block styles %}
+    {{ style('index.css') }}
+{% endblock %}
+
+{% block scripts %}
+    {{ script('index.js') }}
+{% endblock %}
+
+{% block content %}
+<div class="index-body" x-data="technologies" x-init="getItems(metadata)">
+    <div class="card my-3">
+        <div class="card-header">
+            Ordering
+        </div>
+        <div class="card-body d-flex justify-content-around">
+            <div class="btn-group" role="group" aria-label="Ordering selection">
+                <button class="btn btn-primary ordering-selection-button active" name="creation_date" @click="changeOrdering">By creation date</button>
+                <button class="btn btn-primary ordering-selection-button" name="likes" @click="changeOrdering">By likes</button>
+            </div>
+            <i class="bi bi-arrow-down-square display-6" :class="`bi-arrow-${metadata.dir == '-' ? 'down' : 'up'}-square`" @click="toggleDir"></i>
+        </div>
+    </div>
+    <hr />
+    <template x-for="(t, i) in data.results">
+        {% include 'card.html' %}
+    </template>
+    <hr />
+    <template x-if="data.more || metadata.page > 0">
+        <div class="card page-selector">
+            <div class="row g-0">
+                <div class="col-md-6 d-flex justify-content-center">
+                    <template x-if="metadata.page > 0">
+                        <i class="bi bi-arrow-left-circle display-6" @click="changePage(-1)"></i>
+                    </template>
+                </div>
+                <div class="col-md-6 d-flex justify-content-center">
+                    <template x-if="data.more">
+                        <i class="bi bi-arrow-right-circle display-6" @click="changePage(1)"></i>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {% include 'error_modal.html' %}
+</div>
+{% endblock %}

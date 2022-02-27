@@ -1,0 +1,34 @@
+<div class="card my-3">
+    <a class="stretched-link" :href="`/technology/${t.tid}`"></a>
+    <div class="card-header">
+        <div class="row g-0">
+            <div class="col-md-4 my-auto" x-text="t.name"></div>
+            <div class="col-md-4 my-auto">
+                by <b x-text="t.username"></b>
+            </div>
+            <div class="col-md-4 my-auto text-center">
+                on <b class="stretched-link position-relative" x-text="t.creation_date" data-bs-toggle="tooltip" data-bs-placement="top" :title="`Updated on ${t.update_date}`" x-init="new bootstrap.Tooltip($el)"></b>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row g-0">
+            <div class="col-md-4 my-auto">
+                <img :src="`/uploads/${t.logo_filename}`" class="img-fluid rounded" width="128" height="128" />
+            </div>
+            <div class="col-md-4 my-auto">
+                <div class="row g-0" x-text="t.description"></div>
+                <hr />
+                <div class="row g-0 text-break">
+                    <a class="stretched-link position-relative" :href="t.link" target="_blank">Learn more</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="row g-0 mb-3">
+                    <i class="bi display-5 text-center stretched-link position-relative" :class="`bi-hand-thumbs-up${t.liked ? '-fill' : ''}`" @click="like(t.tid, i)"></i>
+                </div>
+                <div class="row g-0 justify-content-center" x-text="t.likes"></div>
+            </div>
+        </div>
+    </div>
+</div>

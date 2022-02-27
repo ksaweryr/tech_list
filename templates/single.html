@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Technology{% endblock %}
+
+{% block styles %}
+    {{ style('index.css') }}
+{% endblock %}
+
+{% block scripts %}
+    {{ script('single.js') }}
+{% endblock %}
+
+{% block content %}
+<div class="index-body" x-data="technology({{ tid }})" x-init="load">
+    <template x-if="found">
+        {% include 'card.html' %}
+    </template>
+    <template x-if="!found">
+        <h1>Couldn't find technology with id {{ tid }}</h1>
+    </template>
+
+    {% include 'error_modal.html' %}
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ const apiRequest = async (endpoint, body, method) => {
         headers: {
             'Content-type': 'application/json'
         },
-        body: JSON.stringify(body)
+        ...(method != 'GET' && {body: JSON.stringify(body)})
     });
 
     return {
