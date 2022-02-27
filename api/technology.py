@@ -103,18 +103,31 @@ def get_list():
     count = parse_or_default(request.args.get('size'), 10)
     ordering = request.args.get('ord', 'creation_date')
 
-    if not ((ordering[0] == '-' and ordering[1:] in ORDERINGS)
-            or ordering in ORDERINGS):
+    if ordering[0] == '-':
+        dir = 'DESC'
+        ordering = ordering[1:]
+    else:
+        dir = 'ASC'
+
+    if ordering not in ORDERINGS:
         ordering = 'creation_date'
+
+    secondary_ordering = 'creation_date' if ordering == 'likes' else 'likes'
 
     with DbConnector() as conn:
         c = conn.cursor()
 
         rows = c.execute(f'''
-            SELECT {", ".join(COLUMNS)}
+            SELECT {", ".join(COLUMNS)},
+            EXISTS(SELECT 1 FROM liked WHERE tid = t.tid AND uid = :uid)
             FROM technology t NATURAL JOIN app_user u
-            ORDER BY ? LIMIT ? OFFSET ?;
-        ''', (ordering, count, offset)).fetchall()
+            ORDER BY {ordering}, {secondary_ordering} {dir}
+            LIMIT :count OFFSET :offset;
+        ''', {
+                'uid': g.user.uid if g.user is not None else -1,
+                'count': count,
+                'offset': offset
+            }).fetchall()
 
         more = c.execute(
             'SELECT COUNT(*) FROM technology'
@@ -122,7 +135,7 @@ def get_list():
 
     return jsonify({
         'results': [
-            dict(zip(map(itemgetter(slice(2, None)), COLUMNS), row))
+            dict(zip((*map(itemgetter(slice(2, None)), COLUMNS), 'liked'), row))
             for row in rows
         ],
         'more': more
@@ -138,15 +151,17 @@ def get_single(tid):
     with DbConnector() as conn:
         c = conn.cursor()
         row = c.execute(f'''
-            SELECT {", ".join(COLUMNS)}
+            SELECT {", ".join(COLUMNS)},
+            EXISTS(SELECT 1 FROM liked WHERE tid = :tid AND uid = :uid )
             FROM technology t NATURAL JOIN app_user u
-            WHERE tid = ?;
-        ''', (tid,)).fetchone()
+            WHERE tid = :tid;
+        ''', {'tid': tid, 'uid': g.user.uid if g.user is not None else -1}
+        ).fetchone()
 
     if row is None:
         return error('Technology not found'), 404
 
-    return jsonify(dict(zip(map(itemgetter(slice(2, None)), COLUMNS), row)))
+    return jsonify(dict(zip((*map(itemgetter(slice(2, None)), COLUMNS), 'liked'), row)))
 
 
 @bp.patch('/<int:tid>')
@@ -232,3 +247,27 @@ def delete(tid):
         os.remove(Path('uploads') / filename)
 
     return jsonify({'msg': 'ok'})
+
+
+@bp.post('/like/<int:tid>')
+@login_required
+def like(tid):
+    uid = g.user.uid
+    with DbConnector() as conn:
+        c = conn.cursor()
+        (liked,) = c.execute('''
+            SELECT COUNT(*) FROM liked WHERE tid = ? AND uid = ?;
+        ''', (tid, uid)).fetchone()
+        liked = bool(liked)
+
+        if not liked:
+            c.execute('''
+                INSERT INTO liked(tid, uid)
+                VALUES(?, ?);
+            ''', (tid, uid))
+        else:
+            c.execute('''
+                DELETE FROM liked WHERE tid = ? AND uid = ?;
+            ''', (tid, uid))
+
+    return jsonify({'state': not liked})
