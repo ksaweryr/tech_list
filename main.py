@@ -27,13 +27,13 @@ def set_g_user():
     try:
         token = jwt.decode(token, environ['TOKEN'], algorithms=['HS256'],
             options={
-                'require': ['username', 'admin', 'iat']
+                'require': ['username', 'uid', 'admin', 'iat']
             }
         )
     except InvalidTokenError:
         return
 
-    g.user = User(token['username'], token['admin'])
+    g.user = User(token['username'], token['uid'], token['admin'])
 
 
 @app.get('/uploads/<filename>')

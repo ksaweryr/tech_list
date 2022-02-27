@@ -80,10 +80,10 @@ def create():
                     uid, name, description, logo_filename, link
                 )
                 VALUES(
-                    (SELECT uid FROM app_user WHERE username = ?), ?, ?, ?, ?
+                    ?, ?, ?, ?, ?
                 )
                 RETURNING tid;
-            ''', (g.user.username, name, description, filename, link)
+            ''', (g.user.uid, name, description, filename, link)
             ).fetchone()
     except IntegrityError:
         os.remove(Path('uploads') / filename)
@@ -157,7 +157,7 @@ def update(tid):
     with DbConnector() as conn:
         if (
             not g.user.admin
-            and get_technology_creator(conn.cursor(), tid) != g.user.username
+            and get_technology_creator(conn.cursor(), tid) != g.user.uid
         ):
             return (error('You don\' have permission to modify this record'),
                     403)
@@ -218,7 +218,7 @@ def delete(tid):
         c = conn.cursor()
         if (
             not g.user.admin
-            and get_technology_creator(c, tid) != g.user.username
+            and get_technology_creator(c, tid) != g.user.uid
         ):
             return (error('You don\' have permission to modify this record'),
                     403)

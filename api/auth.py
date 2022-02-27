@@ -22,9 +22,9 @@ bp = Blueprint('auth', __name__)
 def _(): pass
 
 
-def create_token(username: str, admin: bool) -> str:
+def create_token(username: str, uid: int, admin: bool) -> str:
     return jwt.encode(
-        {'username': username, 'admin': admin, 'iat': int(time())},
+        {'username': username, 'uid': uid, 'admin': admin, 'iat': int(time())},
         environ['TOKEN'], algorithm='HS256'
     )
 
@@ -47,12 +47,12 @@ def register():
     with DbConnector() as conn:
         c = conn.cursor()
         try:
-            create_user(c, username, password)
+            uid = create_user(c, username, password)
         except IntegrityError:
             return error('User already exists'), 402
 
     resp = make_response(jsonify({'msg': 'ok'}))
-    resp.set_cookie('token', create_token(username, False))
+    resp.set_cookie('token', create_token(username, uid, False))
 
     return resp
 
@@ -68,10 +68,10 @@ def login():
 
     with DbConnector() as conn:
         c = conn.cursor()
-        (hashed, admin) = c.execute(
-            'SELECT password, admin FROM app_user WHERE username=?;',
+        (hashed, uid, admin) = c.execute(
+            'SELECT password, uid, admin FROM app_user WHERE username=?;',
             (username,)
-        ).fetchone() or (None, None)
+        ).fetchone() or (None, None, None)
 
     if hashed is None:
         return error('User doesn\'t exist'), 400
@@ -83,6 +83,6 @@ def login():
         return error('Invalid password'), 400
 
     resp = make_response(jsonify({'msg': 'ok'}))
-    resp.set_cookie('token', create_token(username, bool(admin)))
+    resp.set_cookie('token', create_token(username, uid, bool(admin)))
 
     return resp

@@ -11,21 +11,22 @@ class DbConnector(Connection):
 
 
 def create_user(c: Cursor, username: str, password: str,
-                *, admin: bool = False) -> None:
+                *, admin: bool = False) -> int:
     ph = PasswordHasher()
     hashed = ph.hash(password)
-    c.execute(
-        'INSERT INTO app_user(username, password, admin) VALUES(?, ?, ?);',
-        (username, hashed, admin)
-    )
+    return c.execute('''
+        INSERT INTO app_user(username, password, admin)
+        VALUES(?, ?, ?) RETURNING uid;
+        ''', (username, hashed, admin)
+    ).fetchone()[0]
 
 
-def get_technology_creator(c: Cursor, tid: int) -> str | None:
+def get_technology_creator(c: Cursor, tid: int) -> int | None:
     (creator,) = c.execute('''
-        SELECT u.username
+        SELECT u.uid
         FROM technology t
         NATURAL JOIN app_user u
-        WHERE t.tid = ?;''',
-        (tid,)).fetchone() or (None,)
+        WHERE t.tid = ?;
+    ''', (tid,)).fetchone() or (None,)
 
     return creator
