@@ -121,7 +121,7 @@ def get_list():
             SELECT {", ".join(COLUMNS)},
             EXISTS(SELECT 1 FROM liked WHERE tid = t.tid AND uid = :uid)
             FROM technology t NATURAL JOIN app_user u
-            ORDER BY {ordering}, {secondary_ordering} {dir}
+            ORDER BY {ordering} {dir}, {secondary_ordering} {dir}
             LIMIT :count OFFSET :offset;
         ''', {
                 'uid': g.user.uid if g.user is not None else -1,
