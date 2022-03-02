@@ -87,7 +87,7 @@ def create():
             ).fetchone()
     except IntegrityError:
         os.remove(Path('uploads') / filename)
-        return error('Technology with this name already exists')
+        return error('Technology with this name already exists'), 403
 
     return jsonify({'tid': tid})
 
