@@ -1,10 +1,10 @@
-const apiRequest = async (endpoint, body, method) => {
+const apiRequest = async (endpoint, body, method, content_type = 'application/json') => {
     const response = await fetch(`/api/${endpoint}`, {
         method,
         headers: {
-            'Content-type': 'application/json'
+            ...(content_type.startsWith('multipart') || {'Content-type': content_type})
         },
-        ...(method != 'GET' && {body: JSON.stringify(body)})
+        ...(method != 'GET' && {body: (content_type === 'application/json' ? JSON.stringify : x => x)(body)})
     });
 
     return {
