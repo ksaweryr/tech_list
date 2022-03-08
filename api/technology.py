@@ -101,6 +101,7 @@ def get_list():
     )
     offset = parse_or_default(request.args.get('off'), 0)
     count = parse_or_default(request.args.get('size'), 10)
+    author = request.args.get('author')
     ordering = request.args.get('ord', 'creation_date')
 
     if ordering[0] == '-':
@@ -117,21 +118,30 @@ def get_list():
     with DbConnector() as conn:
         c = conn.cursor()
 
+        if author is not None:
+            author_exists = c.execute('SELECT * FROM app_user WHERE username = ?;', (author,)).fetchone() is not None
+
+            if not author_exists:
+                return error(f'User {author} doesn\'t exist'), 404
+
         rows = c.execute(f'''
-            SELECT {", ".join(COLUMNS)},
+            SELECT {', '.join(COLUMNS)},
             EXISTS(SELECT 1 FROM liked WHERE tid = t.tid AND uid = :uid)
             FROM technology t NATURAL JOIN app_user u
+            {'NATURAL JOIN app_user WHERE username = :author' if author is not None else ''}
             ORDER BY {ordering} {dir}, {secondary_ordering} {dir}
             LIMIT :count OFFSET :offset;
         ''', {
                 'uid': g.user.uid if g.user is not None else -1,
                 'count': count,
-                'offset': offset
+                'offset': offset,
+                'author': author
             }).fetchall()
 
-        more = c.execute(
-            'SELECT COUNT(*) FROM technology'
-            ).fetchone()[0] > offset + count
+        more = c.execute(f'''
+            SELECT COUNT(*) FROM technology
+            {'NATURAL JOIN app_user WHERE username = :author' if author is not None else ''};
+        ''', {'author': author}).fetchone()[0] > offset + count
 
     return jsonify({
         'results': [
