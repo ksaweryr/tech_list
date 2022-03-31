@@ -1,10 +1,12 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('technologies', () => ({
+    Alpine.data('technologies', (author = '') => ({
         async getItems(args) {
-            const { page, count, dir, ord } = args;
-            const result = await apiRequest(`technology?off=${page * count}&size=${count}&ord=${dir + ord}`, {}, 'GET');
+            const params = {...args, ord: args.dir + args.ord, off: args.page * args.count};
+            delete params.dir;
+            delete params.page;
+            const result = await apiRequest(`technology?${urlParams(params)}`, {}, 'GET');
             if(result.status != 200) {
-                this.error = likeResult.json.error;
+                this.error = result.json.error;
                 this.showError();
                 return;
             }
@@ -15,10 +17,12 @@ document.addEventListener('alpine:init', () => {
             page: 0,
             count: 5,
             ord: 'creation_date',
-            dir: '-'
+            dir: '-',
+            ...(author === '' || {author})
         },
         data: null,
         error: null,
+        selectedTechnology: null,
         async changeOrdering(e) {
             document.querySelectorAll('.ordering-selection-button').forEach(e => e.classList.remove('active'));
             e.target.classList.add('active');
@@ -38,6 +42,24 @@ document.addEventListener('alpine:init', () => {
             }
             const result = await apiRequest(`technology/${tid}`, {}, 'GET');
             this.data.results[i] = Object.assign(result.json, { tid });
+        },
+        edit(tid) {
+            window.location.href = `/technology/edit/${tid}`;
+        },
+        showDeletionModal(t) {
+            this.selectedTechnology = t;
+            (new bootstrap.Modal(document.querySelector('#deletionModal'), {})).show();
+        },
+        async deleteTechnology(tid) {
+            const result = await apiRequest(`technology/${tid}`, {}, 'DELETE');
+
+            if(result.status != 200) {
+                this.error = result.json.error;
+                this.showError();
+                return;
+            }
+
+            await this.getItems(this.metadata);
         },
         async changePage(n) {
             this.metadata.page += n;

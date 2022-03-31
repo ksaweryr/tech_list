@@ -4,10 +4,13 @@
         <div class="row g-0">
             <div class="col-md-4 my-auto" x-text="t.name"></div>
             <div class="col-md-4 my-auto">
-                by <b x-text="t.username"></b>
+                by
+                <a class="stretched-link position-relative" :href="'{{ url_for('frontend.user.technologies', username='__username__') }}'.replace('__username__', t.username)">
+                    <b x-text="t.username"></b>
+                </a>
             </div>
             <div class="col-md-4 my-auto text-center">
-                on <b class="stretched-link position-relative" x-text="t.creation_date" data-bs-toggle="tooltip" data-bs-placement="top" :title="`Updated on ${t.update_date}`" x-init="new bootstrap.Tooltip($el)"></b>
+                on <b class="stretched-link position-relative" x-text="t.creation_date" data-bs-toggle="tooltip" data-bs-placement="top" :title="t.update_date !== null ? `Updated on ${t.update_date}` : null" x-init="t.update_date !== null ? new bootstrap.Tooltip($el) : null"></b>
             </div>
         </div>
     </div>
@@ -23,11 +26,23 @@
                     <a class="stretched-link position-relative" :href="t.link" target="_blank">Learn more</a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="row g-0 mb-3">
-                    <i class="bi display-5 text-center stretched-link position-relative" :class="`bi-hand-thumbs-up${t.liked ? '-fill' : ''}`" @click="like(t.tid, i)"></i>
+            <div class="col-md-4 my-auto">
+                <div class="row justify-content-center g-0">
+                    {% if editable %}
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <i class="bi display-5 text-center stretched-link position-relative bi-pencil" @click="edit(t.tid)"></i>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <i class="bi display-5 text-center stretched-link position-relative" :class="`bi-hand-thumbs-up${t.liked ? '-fill' : ''}`" @click="like(t.tid, i)"></i>
+                        <div x-text="t.likes"></div>
+                    </div>
+                    {% if editable %}
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <i class="bi display-5 text-center stretched-link position-relative bi-trash" @click="showDeletionModal(t)"></i>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="row g-0 justify-content-center" x-text="t.likes"></div>
             </div>
         </div>
     </div>

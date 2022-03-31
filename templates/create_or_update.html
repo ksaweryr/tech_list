@@ -1,21 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Create{% endblock %} 
+{% block title %}{{ action.capitalize() }}{% endblock %} 
 
 {% block styles %}
     {{ style('index.css') }}
 {% endblock %}
 
 {% block scripts %}
-    {{ script('create.js') }}
+    {{ script('create_or_update.js') }}
 {% endblock %}
+
+{% macro get_value(key) %}
+    {% if data %}value="{{ data[key] }}"{% endif %}
+{%- endmacro %}
 
 {% block content %}
 <div class="index-body">
     <form novalidate>
+        <input type="hidden" name="tid" value="{{ tid }}" />
         <div class="mb-3">
             <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control auto-validate" name="name" pattern="^.{1,20}$" required />
+            <input type="text" class="form-control auto-validate" name="name" {{ get_value(0) }} pattern="^.{1,20}$" required />
             <div class="form-text">
                 The technology name musn't be longer than 20 characters.
             </div>
@@ -26,19 +31,19 @@
         </div>
         <div class="mb-3">
             <label for="name" class="form-label">Description</label>
-            <textarea class="form-control auto-validate" name="description" pattern="^.{,200}$" rows="4" required></textarea>
+            <textarea class="form-control auto-validate" name="description" pattern="^.{,200}$" rows="4" required>{{ data[1] }}</textarea>
             <div class="form-text">
                 The technology description musn't be longer than 200 characters.
             </div>
         </div>
         <div class="mb-3">
             <label for="name" class="form-label">Link</label>
-            <input type="text" class="form-control auto-validate" name="link" required />
+            <input type="text" class="form-control auto-validate" name="link" {{ get_value(2) }} required />
             <div class="form-text">
                 Address of a website with more info about this technology.
             </div>
         </div>
-        <button type="submit" class="btn btn-primary mb-3">Submit</button>
+        <button type="submit" class="btn btn-primary mb-3 {{ action }}">Submit</button>
         <div class="alert alert-danger" id="api-error" hidden></div>
     </form>
 </div>

@@ -12,3 +12,5 @@ const apiRequest = async (endpoint, body, method, content_type = 'application/js
         json: await response.json()
     };
 };
+
+const urlParams = o => Object.entries(o).map(a => a.join('=')).join('&');

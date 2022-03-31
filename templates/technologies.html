@@ -7,11 +7,14 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ script('index.js') }}
+    {{ script('technologies.js') }}
 {% endblock %}
 
 {% block content %}
-<div class="index-body" x-data="technologies" x-init="getItems(metadata)">
+<div class="index-body" x-data="technologies('{{ author if author else '' }}')" x-init="getItems(metadata)">
+    {% if author %}
+        <h1>Entries by {{ author }}</h1>
+    {% endif %}
     <div class="card my-3">
         <div class="card-header">
             Ordering
@@ -45,6 +48,24 @@
             </div>
         </div>
     </template>
+
+    <div class="modal fade" id="deletionModal" tabindex="-1" aria-labelledby="deletionModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deletionModalTitle">Confirm deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete the entry about <b x-text="selectedTechnology.name"></b>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteTechnology(selectedTechnology.tid)">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% include 'error_modal.html' %}
 </div>
