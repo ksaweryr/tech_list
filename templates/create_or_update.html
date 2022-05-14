@@ -17,7 +17,7 @@
 {% block content %}
 <div class="index-body">
     <form novalidate>
-        <input type="hidden" name="tid" value="{{ tid }}" />
+        {% if data %}<input type="hidden" name="tid" value="{{ tid }}" />{% endif %}
         <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input type="text" class="form-control auto-validate" name="name" {{ get_value(0) }} pattern="^.{1,20}$" required />
@@ -31,7 +31,7 @@
         </div>
         <div class="mb-3">
             <label for="name" class="form-label">Description</label>
-            <textarea class="form-control auto-validate" name="description" pattern="^.{,200}$" rows="4" required>{{ data[1] }}</textarea>
+            <textarea class="form-control auto-validate" name="description" pattern="^.{,200}$" rows="4" required>{% if data %}{{ data[1] }}{% endif %}</textarea>
             <div class="form-text">
                 The technology description musn't be longer than 200 characters.
             </div>

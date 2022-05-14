@@ -8,4 +8,4 @@ bp.route = lambda rule, **options: Blueprint.route(bp, '/<username>' + rule, **o
 
 @bp.get('/technologies')
 def technologies(username):
-    return render_template('technologies.html', author=username, editable=g.user.username == username)
+    return render_template('technologies.html', author=username, editable=g.user is not None and g.user.username == username)
