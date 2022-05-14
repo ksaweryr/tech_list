@@ -3,11 +3,12 @@ argon2-cffi-bindings==21.2.0
 cffi==1.15.0
 click==8.0.3
 flake8==4.0.1
-Flask==2.0.3
+Flask==2.1.2
 itsdangerous==2.0.1
 Jinja2==3.0.3
 MarkupSafe==2.0.1
 mccabe==0.6.1
+Pillow==9.1.0
 pycodestyle==2.8.0
 pycparser==2.21
 pyflakes==2.4.0
